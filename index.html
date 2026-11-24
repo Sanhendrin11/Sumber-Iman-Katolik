@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kuis Interaktif - Kitab Suci, Tradisi, dan Magisterium</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #3498db 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    color: #333;
+  }
+  .app {
+    background: #fff;
+    width: 100%;
+    max-width: 800px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+    animation: fadeIn 0.5s ease;
+  }
+  @keyframes fadeIn { from {opacity:0; transform: translateY(20px);} to {opacity:1; transform:translateY(0);} }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    color: #fff;
+    padding: 25px 30px;
+    text-align: center;
+  }
+  .header h1 { font-size: 1.5em; margin-bottom: 5px; }
+  .header p { font-size: 0.9em; opacity: 0.85; }
+
+  /* START SCREEN */
+  .start-screen { padding: 50px 30px; text-align: center; }
+  .start-screen .icon { font-size: 70px; margin-bottom: 20px; animation: bounce 2s infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-15px);} }
+  .start-screen h2 { color: #2c3e50; margin-bottom: 15px; font-size: 1.6em; }
+  .start-screen p { color: #666; margin-bottom: 25px; line-height: 1.7; }
+  .info-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    margin-bottom: 30px; max-width: 500px; margin-left: auto; margin-right: auto;
+  }
+  .info-card { background: #f0f6ff; padding: 15px 10px; border-radius: 12px; border: 2px solid #d6e6ff; }
+  .info-card .num { font-size: 1.6em; font-weight: bold; color: #2a5298; }
+  .info-card .lbl { font-size: 0.78em; color: #555; margin-top: 3px; }
+
+  .btn {
+    background: linear-gradient(135deg, #2a5298, #3498db);
+    color: #fff; border: none; padding: 15px 45px; font-size: 1.05em;
+    font-weight: 600; border-radius: 50px; cursor: pointer;
+    transition: all 0.3s; box-shadow: 0 6px 20px rgba(42,82,152,0.4);
+    font-family: inherit;
+  }
+  .btn:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(42,82,152,0.5); }
+  .btn:active { transform: translateY(-1px); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-secondary {
+    background: #fff; color: #2a5298; border: 2px solid #2a5298;
+    box-shadow: none;
+  }
+  .btn-secondary:hover { background: #f0f6ff; box-shadow: 0 6px 20px rgba(42,82,152,0.2); }
+
+  /* QUIZ SCREEN */
+  .quiz-screen { display: none; }
+  .quiz-top {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 18px 30px; background: #f8fbff; border-bottom: 1px solid #e3eefc;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .progress-info { font-size: 0.9em; color: #555; font-weight: 600; }
+  .progress-info span { color: #2a5298; }
+  .score-live {
+    display: flex; align-items: center; gap: 8px;
+    background: #fff; padding: 8px 16px; border-radius: 50px;
+    font-weight: 700; color: #2c3e50; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .score-live .star { font-size: 1.1em; }
+
+  .progress-bar-wrap { height: 8px; background: #e3eefc; }
+  .progress-bar {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #2a5298, #3498db, #5dade2);
+    transition: width 0.4s ease;
+    border-radius: 0 4px 4px 0;
+  }
+
+  .question-area { padding: 30px; }
+  .category-tag {
+    display: inline-block; background: #e8f4fd; color: #2a5298;
+    font-size: 0.75em; font-weight: 700; padding: 5px 14px;
+    border-radius: 50px; margin-bottom: 15px; text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .question-text {
+    font-size: 1.12em; font-weight: 600; color: #1a2a3a;
+    line-height: 1.6; margin-bottom: 22px;
+  }
+
+  .options { display: flex; flex-direction: column; gap: 11px; }
+  .option {
+    display: flex; align-items: center; gap: 14px;
+    padding: 15px 18px; border: 2px solid #d6e6ff; border-radius: 12px;
+    cursor: pointer; transition: all 0.2s; background: #fff; text-align: left;
+    font-family: inherit; font-size: 0.98em; color: #333;
+  }
+  .option:hover:not(.disabled) { border-color: #3498db; background: #f5faff; transform: translateX(4px); }
+  .option .letter {
+    flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
+    background: #e8f4fd; color: #2a5298; display: flex;
+    align-items: center; justify-content: center; font-weight: 700;
+    transition: all 0.2s;
+  }
+  .option.selected { border-color: #2a5298; background: #eaf2ff; }
+  .option.selected .letter { background: #2a5298; color: #fff; }
+  .option.correct { border-color: #27ae60 !important; background: #eafaf0 !important; animation: pop 0.3s ease; }
+  .option.correct .letter { background: #27ae60; color: #fff; }
+  .option.wrong { border-color: #e74c3c !important; background: #fdeaea !important; animation: shake 0.4s ease; }
+  .option.wrong .letter { background: #e74c3c; color: #fff; }
+  .option.disabled { cursor: not-allowed; }
+  @keyframes pop { 0%{transform:scale(1);} 50%{transform:scale(1.02);} 100%{transform:scale(1);} }
+  @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);} }
+
+  .feedback {
+    margin-top: 20px; padding: 18px; border-radius: 12px;
+    display: none; animation: fadeIn 0.4s ease; line-height: 1.6;
+  }
+  .feedback.show { display: block; }
+  .feedback.correct-fb { background: #eafaf0; border-left: 5px solid #27ae60; }
+  .feedback.wrong-fb { background: #fdeaea; border-left: 5px solid #e74c3c; }
+  .feedback .fb-title { font-weight: 700; margin-bottom: 6px; font-size: 1em; }
+  .feedback.correct-fb .fb-title { color: #1e8449; }
+  .feedback.wrong-fb .fb-title { color: #c0392b; }
+  .feedback .fb-text { font-size: 0.92em; color: #444; }
+  .feedback .fb-ref { font-size: 0.82em; color: #777; font-style: italic; margin-top: 8px; }
+
+  .nav-area {
+    padding: 0 30px 30px; display: flex; justify-content: flex-end; gap: 12px;
+  }
+
+  /* RESULT SCREEN */
+  .result-screen { display: none; padding: 40px 30px; text-align: center; }
+  .score-circle {
+    width: 170px; height: 170px; border-radius: 50%; margin: 0 auto 25px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: conic-gradient(#3498db 0deg, #e8f4fd 0deg);
+    position: relative; transition: background 1s ease;
+  }
+  .score-circle::before {
+    content: ''; position: absolute; inset: 12px; background: #fff; border-radius: 50%;
+  }
+  .score-circle .score-val { position: relative; font-size: 2.6em; font-weight: 800; color: #2a5298; }
+  .score-circle .score-lbl { position: relative; font-size: 0.8em; color: #777; font-weight: 600; }
+  .result-screen h2 { color: #2c3e50; margin-bottom: 8px; font-size: 1.6em; }
+  .result-msg { color: #666; margin-bottom: 25px; font-size: 1em; }
+  .result-stats {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+    max-width: 350px; margin: 0 auto 30px;
+  }
+  .stat-box { padding: 15px; border-radius: 12px; }
+  .stat-box .sv { font-size: 1.8em; font-weight: 800; }
+  .stat-box .sl { font-size: 0.75em; color: #666; margin-top: 2px; }
+  .stat-correct { background: #eafaf0; } .stat-correct .sv { color: #27ae60; }
+  .stat-wrong { background: #fdeaea; } .stat-wrong .sv { color: #e74c3c; }
+
+  /* REVIEW */
+  .review-section { text-align: left; margin-top: 30px; }
+  .review-section h3 { color: #2c3e50; margin-bottom: 15px; font-size: 1.1em; display: flex; align-items: center; gap: 8px; }
+  .review-item {
+    background: #f8fbff; border: 1px solid #e3eefc; border-radius: 12px;
+    padding: 16px 18px; margin-bottom: 12px; border-left: 4px solid #ccc;
+  }
+  .review-item.ok { border-left-color: #27ae60; }
+  .review-item.no { border-left-color: #e74c3c; }
+  .review-item .rq { font-weight: 600; font-size: 0.92em; margin-bottom: 8px; color: #1a2a3a; }
+  .review-item .ra { font-size: 0.85em; color: #555; margin-bottom: 3px; }
+  .review-item .ra b { color: #2a5298; }
+  .review-item .ra.correct-ans b { color: #27ae60; }
+  .review-item .ra.wrong-ans b { color: #e74c3c; }
+  .review-item .badge {
+    display: inline-block; font-size: 0.7em; font-weight: 700;
+    padding: 2px 10px; border-radius: 50px; margin-bottom: 8px;
+  }
+  .badge-ok { background: #d4f5e2; color: #1e8449; }
+  .badge-no { background: #fbdcdc; color: #c0392b; }
+
+  .result-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 30px; }
+
+  @media (max-width: 600px) {
+    .header h1 { font-size: 1.15em; }
+    .question-area { padding: 22px 18px; }
+    .quiz-top { padding: 14px 18px; }
+    .nav-area { padding: 0 18px 22px; }
+    .info-grid { grid-template-columns: 1fr; }
+    .option { padding: 13px 14px; font-size: 0.92em; }
+    .score-circle { width: 140px; height: 140px; }
+    .score-circle .score-val { font-size: 2.1em; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <!-- HEADER -->
+  <div class="header">
+    <h1>📖 Kuis Kitab Suci, Tradisi & Magisterium</h1>
+    <p>Pendidikan Agama Katolik & Budi Pekerti • Kelas X SMA/SMK</p>
+  </div>
+
+  <!-- START SCREEN -->
+  <div class="start-screen" id="startScreen">
+    <div class="icon">🎯</div>
+    <h2>Siap Menguji Pemahamanmu?</h2>
+    <p>Kerjakan 20 soal pilihan ganda tentang <b>Kitab Suci, Tradisi Suci, dan Magisterium Gereja</b>. Setiap jawaban langsung mendapat umpan balik dan pembahasan. Kerjakan dengan santai — tanpa batas waktu!</p>
+    <div class="info-grid">
+      <div class="info-card"><div class="num">20</div><div class="lbl">Soal Pilihan Ganda</div></div>
+      <div class="info-card"><div class="num">5</div><div class="lbl">Opsi Jawaban</div></div>
+      <div class="info-card"><div class="num">∞</div><div class="lbl">Tanpa Batas Waktu</div></div>
+    </div>
+    <button class="btn" id="startBtn">🚀 Mulai Kuis</button>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div class="quiz-screen" id="quizScreen">
+    <div class="quiz-top">
+      <div class="progress-info">Soal <span id="curNum">1</span> dari <span id="totalNum">20</span></div>
+      <div class="score-live"><span class="star">⭐</span> Benar: <span id="liveScore">0</span></div>
+    </div>
+    <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+    <div class="question-area">
+      <div class="category-tag" id="categoryTag">Kitab Suci</div>
+      <div class="question-text" id="questionText"></div>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback">
+        <div class="fb-title" id="fbTitle"></div>
+        <div class="fb-text" id="fbText"></div>
+        <div class="fb-ref" id="fbRef"></div>
+      </div>
+    </div>
+
+    <div class="nav-area">
+      <button class="btn" id="nextBtn" disabled>Soal Berikutnya →</button>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div class="result-screen" id="resultScreen">
+    <div class="score-circle" id="scoreCircle">
+      <div class="score-val" id="scoreVal">0</div>
+      <div class="score-lbl">dari 100</div>
+    </div>
+    <h2 id="resultTitle">Selamat!</h2>
+    <div class="result-msg" id="resultMsg"></div>
+
+    <div class="result-stats">
+      <div class="stat-box stat-correct"><div class="sv" id="statCorrect">0</div><div class="sl">Benar</div></div>
+      <div class="stat-box stat-wrong"><div class="sv" id="statWrong">0</div><div class="sl">Salah</div></div>
+    </div>
+
+    <div class="review-section">
+      <h3>📋 Review Jawaban</h3>
+      <div id="reviewList"></div>
+    </div>
+
+    <div class="result-actions">
+      <button class="btn" id="retryBtn">🔄 Ulangi Kuis</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATA SOAL — 20 Soal PG, materi Kitab Suci, Tradisi, Magisterium
+   ============================================================ */
+const QUESTIONS = [
+  // ===== KITAB SUCI =====
+  {
+    cat: "Kitab Suci",
+    q: "Kitab Suci disebut sebagai \"Sabda Allah dalam bahasa manusia\" karena...",
+    opts: [
+      "Kitab Suci ditulis oleh manusia tanpa campur tangan ilahi",
+      "Allah berbicara melalui penulis manusia yang dipenuhi Roh Kudus, dengan menggunakan kemampuan dan gaya bahasa mereka",
+      "Kitab Suci hanya berisi kata-kata bijak dari para nabi",
+      "Bahasa Kitab Suci tidak dapat dipahami oleh manusia modern",
+      "Kitab Suci adalah kumpulan mitos kuno"
+    ],
+    ans: 1,
+    exp: "Dei Verbum art. 11 menegaskan Allah memilih manusia sebagai penulis suci. Mereka menulis dengan kemampuan dan gaya bahasa mereka sendiri, namun bertindak sebagai penulis sejati yang menuliskan apa yang dikehendaki Allah. Karena itu Kitab Suci tetap Sabda Allah meski memakai bahasa manusia.",
+    ref: "Dei Verbum art. 11; KGK 106"
+  },
+  {
+    cat: "Kitab Suci",
+    q: "Jumlah kitab dalam Kitab Suci Perjanjian Lama dan Perjanjian Baru menurut kanon Katolik adalah...",
+    opts: ["39 dan 27 kitab", "46 dan 27 kitab", "46 dan 26 kitab", "39 dan 26 kitab", "27 dan 46 kitab"],
+    ans: 1,
+    exp: "Gereja Katolik mengakui 46 kitab Perjanjian Lama (termasuk kitab Deuterokanonika) dan 27 kitab Perjanjian Baru. Jumlah ini ditegaskan dalam Konsili Trente dan pengantar Kitab Suci resmi KWI.",
+    ref: "KGK 120; Buku Siswa PAK Kelas X"
+  },
+  {
+    cat: "Kitab Suci",
+    q: "Menurut Dei Verbum art. 21, sikap Gereja terhadap Kitab Suci adalah...",
+    opts: [
+      "Menjunjung tinggi Kitab Suci sebagai satu-satunya sumber iman",
+      "Menghormati Kitab Suci seperti menghormati tubuh Kristus sendiri",
+      "Menganggap Kitab Suci sebagai buku sejarah biasa",
+      "Mengabaikan Kitab Suci karena sudah ada Tradisi",
+      "Menempatkan Kitab Suci di bawah Tradisi Suci"
+    ],
+    ans: 1,
+    exp: "Dei Verbum art. 21 menyatakan Gereja selalu menjunjung tinggi Kitab Suci, seperti juga menjunjung tinggi Tubuh Tuhan sendiri. Gereja menerima roti kehidupan dari meja Sabda Allah dan Tubuh Kristus, terutama dalam Liturgi.",
+    ref: "Dei Verbum art. 21; KGK 103"
+  },
+  {
+    cat: "Kitab Suci",
+    q: "Seorang siswa Katolik membaca Kitab Suci setiap malam. Ia menemukan perikop yang menurutnya bertentangan dengan ajaran Gereja. Sikap paling tepat berdasarkan kedudukan Kitab Suci adalah...",
+    opts: [
+      "Mengabaikan perikop tersebut karena Kitab Suci tidak mungkin salah",
+      "Menafsirkan sendiri perikop itu dan meninggalkan ajaran Gereja",
+      "Mencari penjelasan resmi dari Magisterium Gereja karena penafsiran otentik ada pada mereka",
+      "Berhenti membaca Kitab Suci karena membingungkan",
+      "Menganggap Kitab Suci sudah rusak dan tidak relevan"
+    ],
+    ans: 2,
+    exp: "Dei Verbum art. 10 menegaskan tugas menafsirkan Sabda Allah secara otentik dipercayakan kepada Magisterium Gereja yang hidup (Paus dan para Uskup dalam persekutuan dengannya). Penafsiran pribadi yang bertentangan dengan ajaran Gereja berisiko salah.",
+    ref: "Dei Verbum art. 10 & 12"
+  },
+  {
+    cat: "Kitab Suci",
+    q: "Proses penetapan daftar kitab-kitab yang diakui sebagai Kitab Suci oleh Gereja disebut...",
+    opts: ["Inspirasi", "Kanonisasi", "Tradisi", "Magisterium", "Revelasi"],
+    ans: 1,
+    exp: "Kanonisasi adalah proses panjang dalam sejarah Gereja untuk menentukan daftar (kanon) kitab-kitab yang diilhami Allah dan diakui sebagai Kitab Suci. Kata \"kanon\" berarti ukuran/daftar.",
+    ref: "Buku Siswa PAK Kelas X; KGK 120"
+  },
+  // ===== TRADISI SUCI =====
+  {
+    cat: "Tradisi Suci",
+    q: "Dalam Dei Verbum art. 9, hubungan antara Kitab Suci dan Tradisi Suci digambarkan sebagai...",
+    opts: [
+      "Dua hal yang saling bertentangan dan harus dipilih salah satu",
+      "Dua hal yang terpisah dan tidak memiliki hubungan",
+      "Dua hal yang sangat erat berhubungan dan saling melengkapi, berasal dari sumber ilahi yang sama",
+      "Tradisi Suci lebih tinggi daripada Kitab Suci",
+      "Kitab Suci lebih tinggi dan Tradisi hanya pelengkap"
+    ],
+    ans: 2,
+    exp: "Dei Verbum art. 9 menyatakan keduanya mengalir dari sumber ilahi yang sama, bersama-sama membentuk satu kesatuan, dan mengarah pada tujuan yang sama. Keduanya tidak dapat dipisahkan.",
+    ref: "Dei Verbum art. 9; KGK 80"
+  },
+  {
+    cat: "Tradisi Suci",
+    q: "Pernyataan: \"Gereja Katolik mengajarkan bahwa doa kepada orang kudus adalah bagian dari Tradisi Suci.\" Ini menunjukkan bahwa Tradisi Suci...",
+    opts: [
+      "Hanya berisi aturan-aturan yang sudah usang",
+      "Mencakup ajaran dan praktik iman yang diwariskan dari para rasul dan berkembang dalam Gereja di bawah bimbingan Roh Kudus",
+      "Sama persis dengan tradisi budaya setempat",
+      "Hanya ada dalam Kitab Suci",
+      "Diciptakan oleh Paus secara sepihak"
+    ],
+    ans: 1,
+    exp: "Tradisi Suci (dengan \"T\" besar) bukan kebiasaan lokal, melainkan pewarisan ajaran dan praktik iman dari para rasul yang terus hidup dan berkembang dalam Gereja di bawah bimbingan Roh Kudus. Doa kepada orang kudus adalah salah satu contohnya.",
+    ref: "KGK 81–83; Dei Verbum art. 8"
+  },
+  {
+    cat: "Tradisi Suci",
+    q: "Manakah yang termasuk dalam \"Tradisi tidak resmi\" (tradisi dengan \"t\" kecil) dalam Gereja Katolik?",
+    opts: [
+      "Sakramen Ekaristi",
+      "Syahadat Para Rasul",
+      "Ajaran tentang Tritunggal Mahakudus",
+      "Aturan puasa dan pantang pada hari tertentu",
+      "Liturgi Misa"
+    ],
+    ans: 3,
+    exp: "Tradisi tidak resmi (tradisi dengan \"t\" kecil) adalah kebiasaan atau disiplin gerejawi yang dapat berubah sesuai kebutuhan zaman, seperti aturan puasa dan pantang. Sedangkan Sakramen, Syahadat, dan ajaran Tritunggal adalah bagian Tradisi Suci (T besar) yang tidak berubah.",
+    ref: "KGK 83; Buku Siswa PAK Kelas X"
+  },
+  {
+    cat: "Tradisi Suci",
+    q: "Bentuk Tradisi Suci yang berkaitan dengan perayaan iman Gereja, seperti perayaan Ekaristi dan Sakramen-sakramen lainnya, disebut...",
+    opts: ["Doktrin", "Liturgi", "Syahadat", "Kitab Suci", "Magisterium"],
+    ans: 1,
+    exp: "Liturgi adalah salah satu bentuk Tradisi Resmi Gereja. Melalui liturgi, Gereja merayakan dan mewartakan misteri keselamatan. Dei Verbum 21 menegaskan Gereja menerima roti kehidupan terutama dalam Liturgi.",
+    ref: "Dei Verbum art. 21; KGK 1124"
+  },
+  {
+    cat: "Tradisi Suci",
+    q: "Di sebuah paroki, ada kebiasaan membersihkan makam keluarga menjelang Hari Raya Semua Orang Kudus. Kebiasaan ini dalam perspektif Tradisi Katolik dapat dipahami sebagai...",
+    opts: [
+      "Tradisi Suci yang wajib diimani semua umat Katolik",
+      "Tradisi budaya lokal (tradisi kecil) yang dapat dihayati sejauh tidak bertentangan dengan iman dan dapat menjadi sarana ekspresi iman akan kebangkitan",
+      "Tindakan yang dilarang Gereja karena bukan berasal dari Kitab Suci",
+      "Pengganti Sakramen",
+      "Bagian dari Magisterium Gereja"
+    ],
+    ans: 1,
+    exp: "Gereja membedakan Tradisi Suci (dari para rasul) dan tradisi budaya lokal. Kebiasaan ziarah kubur dapat menjadi \"tradisi kecil\" yang baik jika diarahkan untuk mendoakan arwah dan menguatkan iman akan kebangkitan, bukan praktik yang bertentangan dengan iman Katolik.",
+    ref: "KGK 83; Dei Verbum art. 8"
+  },
+  {
+    cat: "Tradisi Suci",
+    q: "Kata \"Tradisi\" dalam bahasa Latin \"traditio\" atau bahasa Yunani \"paradosis\" secara harfiah berarti...",
+    opts: ["Menulis", "Membaca", "Meneruskan atau menyerahkan", "Menghafal", "Mengubah"],
+    ans: 2,
+    exp: "Kata \"tradisi\" berasal dari kata kerja Latin tradere yang berarti \"menyerahkan\" atau \"meneruskan\". Dalam konteks iman, Tradisi berarti apa yang diteruskan dari para rasul kepada generasi berikutnya.",
+    ref: "KGK 81; Buku Siswa PAK Kelas X"
+  },
+  // ===== MAGISTERIUM =====
+  {
+    cat: "Magisterium",
+    q: "Magisterium Gereja terdiri dari...",
+    opts: [
+      "Para teolog dan ahli Kitab Suci",
+      "Paus dan para Uskup dalam persekutuan dengan Paus",
+      "Seluruh umat Katolik di dunia",
+      "Para katekis dan guru agama",
+      "Para diakon dan imam saja"
+    ],
+    ans: 1,
+    exp: "Magisterium adalah wewenang mengajar Gereja yang dipercayakan kepada Paus dan para Uskup yang berada dalam persekutuan dengan Paus (kolegialitas episkopal). Mereka adalah penerus para rasul.",
+    ref: "Dei Verbum art. 10; KGK 85"
+  },
+  {
+    cat: "Magisterium",
+    q: "Tugas utama Magisterium Gereja menurut Dei Verbum art. 10 adalah...",
+    opts: [
+      "Menciptakan ajaran-ajaran baru",
+      "Menjaga, memelihara, dan menafsirkan simpanan iman (Depositum Fidei) secara otentik",
+      "Menggantikan posisi Kitab Suci",
+      "Menulis ulang Kitab Suci",
+      "Menghakimi umat beriman"
+    ],
+    ans: 1,
+    exp: "Dei Verbum art. 10 menyatakan tugas menafsirkan Sabda Allah (baik tertulis maupun yang diwariskan) secara otentik dipercayakan kepada Magisterium Gereja yang hidup. Magisterium tidak berada di atas Sabda Allah, tetapi melayaninya.",
+    ref: "Dei Verbum art. 10"
+  },
+  {
+    cat: "Magisterium",
+    q: "Ketika Paus Fransiskus mengeluarkan ensiklik tentang pentingnya menjaga lingkungan hidup sebagai bagian dari iman Katolik, tindakan Paus ini merupakan contoh dari...",
+    opts: [
+      "Tradisi budaya lokal",
+      "Pelaksanaan fungsi Magisterium dalam menafsirkan dan mengajarkan iman Kristiani",
+      "Penambahan kitab baru dalam Kitab Suci",
+      "Tindakan politik yang tidak berkaitan dengan iman",
+      "Pendapat pribadi Paus yang tidak mengikat umat"
+    ],
+    ans: 1,
+    exp: "Paus sebagai pemegang jabatan Magisterium tertinggi memiliki wewenang mengajarkan dan menafsirkan iman serta moral. Ensiklik adalah salah satu bentuk pengajaran Magisterium biasa yang membantu umat memahami implikasi iman dalam kehidupan konkret.",
+    ref: "Dei Verbum art. 10; KGK 88–89"
+  },
+  {
+    cat: "Magisterium",
+    q: "\"Simpanan Iman\" (Depositum Fidei) yang dijaga oleh Magisterium terdiri dari...",
+    opts: [
+      "Hanya Kitab Suci",
+      "Hanya Tradisi Suci",
+      "Kitab Suci dan Tradisi Suci",
+      "Kitab Suci, Tradisi Suci, dan pendapat pribadi Paus",
+      "Keputusan-keputusan konsili ekumenis saja"
+    ],
+    ans: 2,
+    exp: "Simpanan Iman (Depositum Fidei) adalah keseluruhan wahyu ilahi yang terdiri dari Kitab Suci dan Tradisi Suci. Magisterium bertugas menjaganya tetap utuh dan murni serta menafsirkannya dengan benar.",
+    ref: "Dei Verbum art. 10; KGK 84"
+  },
+  {
+    cat: "Magisterium",
+    q: "Temanmu berkata, \"Saya tidak perlu mendengarkan Paus. Saya cukup membaca Alkitab sendiri dan saya bisa tahu kebenaran iman.\" Kelemahan utama pernyataan ini adalah...",
+    opts: [
+      "Membaca Alkitab dilarang bagi umat awam",
+      "Mengabaikan peran Magisterium yang oleh Kristus diberi wewenang menafsirkan Sabda Allah secara otentik agar tidak terjadi kesalahan dan perpecahan",
+      "Alkitab terlalu sulit untuk dibaca",
+      "Paus tidak pernah membaca Alkitab",
+      "Pernyataan itu benar adanya"
+    ],
+    ans: 1,
+    exp: "Meskipun umat dianjurkan membaca Alkitab, penafsiran pribadi tanpa bimbingan Magisterium dapat menyebabkan kesalahpahaman dan perpecahan. Kristus memberikan wewenang mengajar kepada para rasul dan penerusnya untuk menjaga kesatuan iman.",
+    ref: "Dei Verbum art. 10; KGK 85"
+  },
+  {
+    cat: "Magisterium",
+    q: "Hubungan antara Kitab Suci, Tradisi Suci, dan Magisterium menurut Dei Verbum art. 10 adalah...",
+    opts: [
+      "Ketiganya terpisah dan tidak saling bergantung",
+      "Magisterium berada di atas Kitab Suci dan Tradisi",
+      "Ketiganya saling terkait erat sehingga tidak dapat berdiri sendiri tanpa yang lain",
+      "Kitab Suci adalah satu-satunya yang penting",
+      "Tradisi Suci lebih penting dari Magisterium"
+    ],
+    ans: 2,
+    exp: "Dei Verbum art. 10 menyatakan Tradisi Suci, Kitab Suci, dan Magisterium Gereja saling berhubungan dan bersatu sedemikian rupa sehingga yang satu tidak dapat berdiri tanpa yang lain. Ketiganya bekerja bersama di bawah bimbingan Roh Kudus.",
+    ref: "Dei Verbum art. 10"
+  },
+  {
+    cat: "Magisterium",
+    q: "Dalam diskusi kelompok, seorang siswa berpendapat ajaran Gereja tentang larangan aborsi hanyalah \"tradisi usang\" yang tidak relevan. Tanggapan tepat berdasarkan pemahaman akan Magisterium adalah...",
+    opts: [
+      "Membiarkannya saja karena itu pendapat pribadi",
+      "Menjelaskan bahwa ajaran moral Gereja tentang martabat hidup manusia adalah bagian ajaran iman yang dijaga dan diajarkan secara otentik oleh Magisterium, bukan sekadar tradisi yang bisa berubah",
+      "Menyetujuinya karena zaman sudah berubah",
+      "Mengatakan bahwa Paus tidak berwenang mengajarkan hal moral",
+      "Mengabaikan diskusi tersebut"
+    ],
+    ans: 1,
+    exp: "Magisterium tidak hanya menjaga ajaran iman (doktrin) tetapi juga ajaran moral. Ajaran tentang martabat hidup manusia sejak pembuahan adalah bagian ajaran moral yang tidak dapat diubah, karena berkaitan erat dengan hukum moral alamiah dan wahyu. Ini bukan \"tradisi usang\".",
+    ref: "KGK 2032–2035; Dei Verbum art. 10"
+  },
+  {
+    cat: "Magisterium",
+    q: "Pernyataan bahwa Magisterium \"melayani\" Sabda Allah berarti...",
+    opts: [
+      "Magisterium berhak mengubah isi Kitab Suci",
+      "Magisterium tidak berada di atas Sabda Allah, melainkan bertugas menjaga dan menafsirkannya dengan setia",
+      "Magisterium adalah pelayan umat dalam hal politik",
+      "Magisterium hanya melayani kepentingan Paus",
+      "Magisterium tidak memiliki wewenang apa pun"
+    ],
+    ans: 1,
+    exp: "Dei Verbum art. 10 menegaskan Magisterium \"tidak berada di atas Sabda Allah, melainkan melayaninya.\" Tugasnya mendengarkan, menjaga, dan menafsirkan Sabda Allah dengan setia agar umat dapat memahami dan hidup sesuai kebenaran.",
+    ref: "Dei Verbum art. 10"
+  },
+  {
+    cat: "Magisterium",
+    q: "Sebagai siswa Katolik, bagaimana kamu dapat mewujudkan ketaatan kepada Magisterium Gereja dalam kehidupan sehari-hari di sekolah?",
+    opts: [
+      "Menolak semua pelajaran yang tidak sesuai dengan pendapat pribadi",
+      "Menerima dan mempelajari ajaran Gereja dengan terbuka, serta berusaha menerapkannya dalam sikap dan tindakan, misalnya dalam kejujuran dan kasih kepada sesama",
+      "Hanya mendengarkan Paus jika perintahnya menyenangkan",
+      "Mengabaikan ajaran Gereja karena di sekolah harus mengikuti aturan sekolah saja",
+      "Mengkritik ajaran Gereja di media sosial"
+    ],
+    ans: 1,
+    exp: "Ketaatan kepada Magisterium bukan ketaatan buta, melainkan keterbukaan menerima dan mempelajari ajaran Gereja dengan sikap iman. Wujud nyatanya adalah menerapkan nilai-nilai Injil yang diajarkan Gereja dalam kehidupan sehari-hari: kejujuran, kasih, dan keadilan.",
+    ref: "Dei Verbum art. 10; KGK 87"
+  }
+];
+
+/* ============================================================
+   STATE & LOGIKA KUIS (TANPA TIMER)
+   ============================================================ */
+let current = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+let locked = new Array(QUESTIONS.length).fill(false);
+
+const $ = id => document.getElementById(id);
+
+// ---- START ----
+$('startBtn').addEventListener('click', startQuiz);
+
+function startQuiz() {
+  current = 0;
+  answers.fill(null);
+  locked.fill(false);
+
+  $('startScreen').style.display = 'none';
+  $('resultScreen').style.display = 'none';
+  $('quizScreen').style.display = 'block';
+
+  renderQuestion();
+}
+
+// ---- HITUNG SKOR SEMENTARA ----
+function countCorrect() {
+  return answers.reduce((acc, a, i) => acc + (a !== null && a === QUESTIONS[i].ans ? 1 : 0), 0);
+}
+
+// ---- RENDER SOAL ----
+function renderQuestion() {
+  const q = QUESTIONS[current];
+  const isLocked = locked[current];
+
+  $('curNum').textContent = current + 1;
+  $('totalNum').textContent = QUESTIONS.length;
+  $('categoryTag').textContent = q.cat;
+  $('questionText').textContent = q.q;
+  $('liveScore').textContent = countCorrect();
+
+  const progress = (current / QUESTIONS.length) * 100;
+  $('progressBar').style.width = `${progress}%`;
+
+  // Options
+  const optsBox = $('options');
+  optsBox.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D', 'E'];
+
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.innerHTML = `<span class="letter">${letters[i]}</span><span>${opt}</span>`;
+    btn.addEventListener('click', () => selectOption(i));
+
+    if (isLocked) {
+      btn.classList.add('disabled');
+      if (i === q.ans) btn.classList.add('correct');
+      else if (i === answers[current]) btn.classList.add('wrong');
+    } else if (answers[current] === i) {
+      btn.classList.add('selected');
+    }
+    optsBox.appendChild(btn);
+  });
+
+  // Feedback
+  const fb = $('feedback');
+  if (isLocked) {
+    showFeedback(q, answers[current]);
+  } else {
+    fb.className = 'feedback';
+    $('nextBtn').disabled = true;
+    $('nextBtn').textContent = current === QUESTIONS.length - 1 ? 'Lihat Hasil 🎉' : 'Soal Berikutnya →';
+  }
+}
+
+// ---- PILIH JAWABAN ----
+function selectOption(idx) {
+  if (locked[current]) return;
+
+  answers[current] = idx;
+  locked[current] = true;
+
+  const q = QUESTIONS[current];
+  const optionEls = document.querySelectorAll('#options .option');
+  const isCorrect = idx === q.ans;
+
+  optionEls.forEach((el, i) => {
+    el.classList.add('disabled');
+    el.classList.remove('selected');
+    if (i === q.ans) el.classList.add('correct');
+    else if (i === idx) el.classList.add('wrong');
+  });
+
+  $('liveScore').textContent = countCorrect();
+  showFeedback(q, idx, isCorrect);
+  $('nextBtn').disabled = false;
+}
+
+function showFeedback(q, chosenIdx, isCorrect) {
+  const fb = $('feedback');
+  const correct = isCorrect !== undefined ? isCorrect : (chosenIdx === q.ans);
+  const letters = ['A', 'B', 'C', 'D', 'E'];
+
+  fb.className = 'feedback show ' + (correct ? 'correct-fb' : 'wrong-fb');
+  $('fbTitle').textContent = correct ? '✅ Jawaban Benar!' : '❌ Jawaban Kurang Tepat';
+  $('fbText').innerHTML = (correct
+    ? ''
+    : `Jawaban yang benar: <b>${letters[q.ans]}. ${q.opts[q.ans]}</b><br><br>`) + q.exp;
+  $('fbRef').textContent = '📚 Rujukan: ' + q.ref;
+}
+
+// ---- NEXT ----
+$('nextBtn').addEventListener('click', () => {
+  if (current < QUESTIONS.length - 1) {
+    current++;
+    renderQuestion();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    finishQuiz();
+  }
+});
+
+// ---- FINISH ----
+function finishQuiz() {
+  const correctCount = countCorrect();
+  const score = Math.round((correctCount / QUESTIONS.length) * 100);
+  const wrongCount = QUESTIONS.length - correctCount;
+
+  $('quizScreen').style.display = 'none';
+  $('resultScreen').style.display = 'block';
+
+  $('scoreVal').textContent = score;
+  $('statCorrect').textContent = correctCount;
+  $('statWrong').textContent = wrongCount;
+
+  // Warna & pesan
+  const circle = $('scoreCircle');
+  const deg = (score / 100) * 360;
+  let color = '#3498db';
+  let title = '', msg = '';
+
+  if (score >= 90) { color = '#27ae60'; title = '🏆 Luar Biasa!'; msg = 'Pemahamanmu tentang Kitab Suci, Tradisi, dan Magisterium sangat baik. Pertahankan!'; }
+  else if (score >= 75) { color = '#2980b9'; title = '👍 Bagus Sekali!'; msg = 'Pemahamanmu sudah baik. Pelajari kembali bagian yang masih keliru ya.'; }
+  else if (score >= 60) { color = '#f39c12'; title = '💪 Cukup Baik'; msg = 'Kamu sudah berusaha. Baca kembali pembahasan dan rujukannya untuk memperdalam.'; }
+  else { color = '#e74c3c'; title = '📚 Perlu Belajar Lagi'; msg = 'Jangan menyerah! Pelajari materi Kitab Suci, Tradisi, dan Magisterium sekali lagi, lalu coba lagi.'; }
+
+  circle.style.background = `conic-gradient(${color} ${deg}deg, #e8f4fd ${deg}deg)`;
+  $('resultTitle').textContent = title;
+  $('resultMsg').textContent = msg;
+  $('scoreVal').style.color = color;
+
+  renderReview();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ---- REVIEW ----
+function renderReview() {
+  const list = $('reviewList');
+  list.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D', 'E'];
+
+  QUESTIONS.forEach((q, i) => {
+    const userAns = answers[i];
+    const ok = userAns === q.ans;
+    const item = document.createElement('div');
+    item.className = 'review-item ' + (ok ? 'ok' : 'no');
+
+    const userText = userAns !== null
+      ? `${letters[userAns]}. ${q.opts[userAns]}`
+      : '<i>Tidak dijawab</i>';
+
+    item.innerHTML = `
+      <span class="badge ${ok ? 'badge-ok' : 'badge-no'}">${ok ? '✔ Benar' : '✘ Salah'}</span>
+      <div class="rq">${i + 1}. ${q.q}</div>
+      <div class="ra ${ok ? 'correct-ans' : 'wrong-ans'}">Jawabanmu: <b>${userText}</b></div>
+      ${ok ? '' : `<div class="ra correct-ans">Jawaban benar: <b>${letters[q.ans]}. ${q.opts[q.ans]}</b></div>`}
+      <div class="ra" style="color:#777;font-style:italic;margin-top:5px;">${q.exp}</div>
+      <div class="ra" style="color:#999;font-size:0.8em;margin-top:4px;">📚 ${q.ref}</div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+// ---- RETRY ----
+$('retryBtn').addEventListener('click', () => {
+  $('resultScreen').style.display = 'none';
+  startQuiz();
+});
+</script>
+</body>
+</html>
